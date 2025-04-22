@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Charts GUI Generator</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .container { display: flex; gap: 20px; }
+    .form { width: 350px; }
+    .form input, .form textarea, .form select, .form label { width: 100%; margin-bottom: 10px; padding: 6px; }
+    #chart { flex: 1; min-width: 600px; height: 500px; }
+    #generatedCode { white-space: pre-wrap; background: #f4f4f4; padding: 10px; border: 1px solid #ccc; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Google Charts GUI Generator</h1>
+  <div class="container">
+    <div class="form">
+      <label for="chartType">Chart Type:</label>
+      <select id="chartType" onchange="drawChart()">
+        <option value="LineChart">Line Chart</option>
+        <option value="BarChart">Bar Chart</option>
+        <option value="ColumnChart">Column Chart</option>
+        <option value="PieChart">Pie Chart</option>
+        <option value="AreaChart">Area Chart</option>
+      </select>
+
+      <label for="chartTitle">Chart Title:</label>
+      <input type="text" id="chartTitle" placeholder="Enter chart title" oninput="drawChart()">
+
+      <label for="xLabel">X-Axis Label:</label>
+      <input type="text" id="xLabel" placeholder="Enter x-axis label" oninput="drawChart()">
+
+      <label for="yLabel">Y-Axis Label:</label>
+      <input type="text" id="yLabel" placeholder="Enter y-axis label" oninput="drawChart()">
+
+      <label for="separator">CSV Separator:</label>
+      <select id="separator" onchange="drawChart()">
+        <option value="," selected>Comma (,)</option>
+        <option value="\t">Tab (\t)</option>
+        <option value=";">Semicolon (;)</option>
+        <option value="|">Pipe (|)</option>
+      </select>
+
+      <label for="legendPosition">Legend Position:</label>
+      <select id="legendPosition" onchange="drawChart()">
+        <option value="right">Right</option>
+        <option value="left">Left</option>
+        <option value="top">Top</option>
+        <option value="bottom">Bottom</option>
+        <option value="none">None</option>
+      </select>
+
+      <label for="chartData">Data (CSV Format):</label>
+      <textarea id="chartData" rows="6" placeholder="e.g. Year,Sales\n2016,100\n2017,120" oninput="drawChart()">Year,Sales
+2016,100
+2017,120
+2018,130</textarea>
+
+      <small>First row: column names. First column = category/date, rest = numbers</small>
+    </div>
+    <div>
+      <div id="chart"></div>
+      <h3>Generated Code</h3>
+      <div id="generatedCode"></div>
+    </div>
+  </div>
+
+  <script>
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      const chartType = document.getElementById('chartType').value;
+      const title = document.getElementById('chartTitle').value;
+      const xLabel = document.getElementById('xLabel').value;
+      const yLabel = document.getElementById('yLabel').value;
+      const dataText = document.getElementById('chartData').value.trim();
+      const separator = document.getElementById('separator').value;
+      const legendPosition = document.getElementById('legendPosition').value;
+
+      try {
+        const lines = dataText.split('\n');
+        const header = lines[0].split(separator);
+        const rows = [header];
+
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split(separator);
+          const parsedRow = [cols[0]];
+          for (let j = 1; j < cols.length; j++) {
+            parsedRow.push(parseFloat(cols[j]));
+          }
+          rows.push(parsedRow);
+        }
+
+        const data = google.visualization.arrayToDataTable(rows);
+
+        const options = {
+          title: title,
+          hAxis: { title: xLabel },
+          vAxis: { title: yLabel },
+          legend: { position: legendPosition }
+        };
+
+        const chart = new google.visualization[chartType](document.getElementById('chart'));
+        chart.draw(data, options);
+
+        const escapedRows = JSON.stringify(rows, null, 2);
+        const escapedTitle = title.replace(/"/g, '\\"');
+        const escapedXLabel = xLabel.replace(/"/g, '\\"');
+        const escapedYLabel = yLabel.replace(/"/g, '\\"');
+
+        const code = `
+&lt;script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript"&gt;
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart() {
+    const data = google.visualization.arrayToDataTable(${escapedRows});
+
+    const options = {
+      title: "${escapedTitle}",
+      hAxis: { title: "${escapedXLabel}" },
+      vAxis: { title: "${escapedYLabel}" },
+      legend: { position: "${legendPosition}" }
+    };
+
+    const chart = new google.visualization.${chartType}(document.getElementById('chart'));
+    chart.draw(data, options);
+  }
+&lt;/script&gt;
+&lt;div id="chart" style="width: 900px; height: 500px;"&gt;&lt;/div&gt;`;
+
+        document.getElementById('generatedCode').innerHTML = code;
+      } catch (e) {
+        document.getElementById('chart').innerHTML = '<p style="color:red;">Error: ' + e.message + '</p>';
+      }
+    }
+  </script>
+</body>
+</html>
