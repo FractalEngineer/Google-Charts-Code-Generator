@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Charts Code Maker</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart', 'table', 'gauge', 'treemap']});
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .config-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        .preview-section {
+            flex: 1;
+            min-width: 500px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        textarea {
+            min-height: 150px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #3b78e7;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: auto;
+        }
+        .code-output {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow: auto;
+            border: 1px solid #ddd;
+        }
+        .tab {
+            display: inline-block;
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            background-color: #f8f9fa;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 2px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 0 4px 4px 4px;
+            margin-bottom: 20px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .info {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Google Charts Code Maker</h1>
+        
+        <div class="flex-container">
+            <div class="config-section">
+                <div class="tab-container">
+                    <div class="tab active" onclick="openTab(event, 'chart-tab')">Chart</div>
+                    <div class="tab" onclick="openTab(event, 'data-tab')">Data</div>
+                    <div class="tab" onclick="openTab(event, 'options-tab')">Options</div>
+                    <div class="tab" onclick="openTab(event, 'code-tab')">Code</div>
+                </div>
+                
+                <div id="chart-tab" class="tab-content active">
+                    <div class="form-group">
+                        <label for="chart-type">Chart Type:</label>
+                        <select id="chart-type" onchange="updateChart()">
+                            <option value="LineChart">Line Chart</option>
+                            <option value="BarChart">Bar Chart</option>
+                            <option value="PieChart">Pie Chart</option>
+                            <option value="ColumnChart">Column Chart</option>
+                            <option value="AreaChart">Area Chart</option>
+                            <option value="ScatterChart">Scatter Chart</option>
+                            <option value="ComboChart">Combo Chart</option>
+                            <option value="Gauge">Gauge</option>
+                            <option value="Table">Table</option>
+                            <option value="TreeMap">TreeMap</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="chart-title">Chart Title:</label>
+                        <input type="text" id="chart-title" value="My Chart" onchange="updateChart()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="chart-width">Width:</label>
+                        <input type="number" id="chart-width" value="600" onchange="updateChart()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="chart-height">Height:</label>
+                        <input type="number" id="chart-height" value="400" onchange="updateChart()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button onclick="updateChart()">Update Chart</button>
+                    </div>
+                </div>
+                
+                <div id="data-tab" class="tab-content">
+                    <div class="info">
+                        Use comma-separated values. First row should contain headers. Example:<br>
+                        Category, Value<br>
+                        Item 1, 10<br>
+                        Item 2, 15
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="chart-data">Data (CSV format):</label>
+                        <textarea id="chart-data" onchange="updateChart()">Category,Value
+Item 1,10
+Item 2,15
+Item 3,12
+Item 4,8
+Item 5,20</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button onclick="updateChart()">Update Data</button>
+                    </div>
+                </div>
+                
+                <div id="options-tab" class="tab-content">
+                    <div class="form-group">
+                        <label for="horizontal-axis">Horizontal Axis Title:</label>
+                        <input type="text" id="horizontal-axis" value="Category" onchange="updateChart()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="vertical-axis">Vertical Axis Title:</label>
+                        <input type="text" id="vertical-axis" value="Value" onchange="updateChart()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="legend-position">Legend Position:</label>
+                        <select id="legend-position" onchange="updateChart()">
+                            <option value="right">Right</option>
+                            <option value="top">Top</option>
+                            <option value="bottom">Bottom</option>
+                            <option value="left">Left</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="is-3d">3D Chart:</label>
+                        <select id="is-3d" onchange="updateChart()">
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="colors">Colors (comma-separated):</label>
+                        <input type="text" id="colors" value="#4285F4,#DB4437,#F4B400,#0F9D58,#AB47BC" onchange="updateChart()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="animation">Animation Duration (ms):</label>
+                        <input type="number" id="animation" value="1000" onchange="updateChart()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="custom-options">Custom Options (JSON):</label>
+                        <textarea id="custom-options" onchange="updateChart()">{}</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button onclick="updateChart()">Update Options</button>
+                    </div>
+                </div>
+                
+                <div id="code-tab" class="tab-content">
+                    <div class="form-group">
+                        <label for="generated-code">Generated Code:</label>
+                        <div class="code-output" id="generated-code"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button onclick="copyCode()">Copy Code</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <h2>Chart Preview</h2>
+                <div id="chart-container" class="chart-container"></div>
+                <p id="error-message" class="error"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to safely escape HTML
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            
+            const tabs = document.getElementsByClassName("tab");
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            const result = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const row = [];
+                let insideQuotes = false;
+                let currentValue = '';
+                
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    
+                    if (char === '"' && line[j+1] === '"' && insideQuotes) {
+                        currentValue += '"';
+                        j++;
+                    } else if (char === '"') {
+                        insideQuotes = !insideQuotes;
+                    } else if (char === ',' && !insideQuotes) {
+                        row.push(currentValue.trim());
+                        currentValue = '';
+                    } else {
+                        currentValue += char;
+                    }
+                }
+                
+                row.push(currentValue.trim());
+                result.push(row);
+            }
+            
+            return result;
+        }
+        
+        function convertDataToGoogleFormat(data) {
+            if (!data || data.length === 0) return null;
+            
+            const headers = data[0];
+            const dataTable = new google.visualization.DataTable();
+            
+            // Add columns
+            for (let i = 0; i < headers.length; i++) {
+                if (i === 0) {
+                    dataTable.addColumn('string', headers[i]);
+                } else {
+                    // Try to determine if column is numeric
+                    let isNumeric = true;
+                    for (let j = 1; j < data.length; j++) {
+                        if (data[j][i] && isNaN(parseFloat(data[j][i]))) {
+                            isNumeric = false;
+                            break;
+                        }
+                    }
+                    
+                    if (isNumeric) {
+                        dataTable.addColumn('number', headers[i]);
+                    } else {
+                        dataTable.addColumn('string', headers[i]);
+                    }
+                }
+            }
+            
+            // Add rows
+            for (let i = 1; i < data.length; i++) {
+                const row = [];
+                for (let j = 0; j < data[i].length; j++) {
+                    if (j === 0) {
+                        row.push(data[i][j]);
+                    } else {
+                        const value = data[i][j];
+                        if (value && !isNaN(parseFloat(value))) {
+                            row.push(parseFloat(value));
+                        } else {
+                            row.push(value);
+                        }
+                    }
+                }
+                dataTable.addRow(row);
+            }
+            
+            return dataTable;
+        }
+        
+        function updateChart() {
+            const chartType = document.getElementById('chart-type').value;
+            const chartTitle = document.getElementById('chart-title').value;
+            const chartWidth = parseInt(document.getElementById('chart-width').value);
+            const chartHeight = parseInt(document.getElementById('chart-height').value);
+            const horizontalAxis = document.getElementById('horizontal-axis').value;
+            const verticalAxis = document.getElementById('vertical-axis').value;
+            const legendPosition = document.getElementById('legend-position').value;
+            const is3D = document.getElementById('is-3d').value === 'true';
+            const colorsInput = document.getElementById('colors').value;
+            const colors = colorsInput ? colorsInput.split(',').map(color => color.trim()) : [];
+            const animation = parseInt(document.getElementById('animation').value);
+            
+            let customOptions = {};
+            try {
+                const customOptionsText = document.getElementById('custom-options').value;
+                if (customOptionsText.trim()) {
+                    customOptions = JSON.parse(customOptionsText);
+                }
+            } catch (e) {
+                document.getElementById('error-message').innerText = 'Invalid JSON in custom options: ' + e.message;
+                return;
+            }
+                        
+            const csvData = document.getElementById('chart-data').value;
+            const parsedData = parseCSV(csvData);
+            const googleData = convertDataToGoogleFormat(parsedData);
+            
+            if (!googleData) {
+                document.getElementById('error-message').innerText = 'Invalid data format';
+                return;
+            }
+            
+            const options = {
+                title: chartTitle,
+                width: chartWidth,
+                height: chartHeight,
+                hAxis: { title: horizontalAxis },
+                vAxis: { title: verticalAxis },
+                legend: { position: legendPosition },
+                is3D: is3D,
+                colors: colors,
+                animation: {
+                    duration: animation,
+                    startup: true
+                },
+                ...customOptions
+            };
+            
+            try {
+                const chartContainer = document.getElementById('chart-container');
+                chartContainer.innerHTML = '';
+                document.getElementById('error-message').innerText = '';
+                
+                let chart;
+                
+                if (chartType === 'Table') {
+                    chart = new google.visualization.Table(chartContainer);
+                } else if (chartType === 'Gauge') {
+                    chart = new google.visualization.Gauge(chartContainer);
+                } else if (chartType === 'TreeMap') {
+                    chart = new google.visualization.TreeMap(chartContainer);
+                } else {
+                    chart = new google.visualization[chartType](chartContainer);
+                }
+                
+                chart.draw(googleData, options);
+                
+                generateCode(chartType, googleData, options);
+            } catch (e) {
+                document.getElementById('error-message').innerText = 'Error drawing chart: ' + e.message;
+                console.error(e);
+            }
+        }
+        
+        function generateCode(chartType, data, options) {
+    try {
+        // Create a template for the HTML output
+        const htmlTemplate = [];
+        
+        // Add HTML document structure with escaped script tags
+        htmlTemplate.push('<!DOCTYPE html>');
+        htmlTemplate.push('<html>');
+        htmlTemplate.push('<head>');
+        htmlTemplate.push('    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"><\/script>');
+        htmlTemplate.push('    <script type="text/javascript">');
+        
+        // Determine package based on chart type
+        let chartPackage = 'corechart';
+        if (chartType === 'Table') chartPackage = 'table';
+        if (chartType === 'Gauge') chartPackage = 'gauge';  
+        if (chartType === 'TreeMap') chartPackage = 'treemap';
+        
+        htmlTemplate.push(`    google.charts.load('current', {'packages':['${chartPackage}']});`);
+        htmlTemplate.push('    google.charts.setOnLoadCallback(drawChart);');
+        htmlTemplate.push('');
+        htmlTemplate.push('    function drawChart() {');
+        
+        // Add data section
+        if (data) {
+            // Convert the DataTable to a JavaScript array representation
+            const dataArray = [];
+            
+            // Add header row
+            const headerRow = [];
+            for (let i = 0; i < data.getNumberOfColumns(); i++) {
+                headerRow.push(data.getColumnLabel(i));
+            }
+            dataArray.push(headerRow);
+            
+            // Add data rows
+            for (let i = 0; i < data.getNumberOfRows(); i++) {
+                const row = [];
+                for (let j = 0; j < data.getNumberOfColumns(); j++) {
+                    row.push(data.getValue(i, j));
+                }
+                dataArray.push(row);
+            }
+            
+            htmlTemplate.push('        const data = google.visualization.arrayToDataTable([');
+            
+            // Format the data array as JavaScript code
+            for (let i = 0; i < dataArray.length; i++) {
+                let rowStr = '            [';
+                for (let j = 0; j < dataArray[i].length; j++) {
+                    const value = dataArray[i][j];
+                    if (j === 0 || typeof value === 'string') {
+                        rowStr += `'${String(value).replace(/'/g, "\\'")}'`;
+                    } else {
+                        rowStr += value;
+                    }
+                    
+                    if (j < dataArray[i].length - 1) {
+                        rowStr += ', ';
+                    }
+                }
+                rowStr += ']';
+                if (i < dataArray.length - 1) {
+                    rowStr += ',';
+                }
+                htmlTemplate.push(rowStr);
+            }
+            
+            htmlTemplate.push('        ]);');
+        } else {
+            htmlTemplate.push('        // Add your data here');
+            htmlTemplate.push('        const data = google.visualization.arrayToDataTable([');
+            htmlTemplate.push("            ['Category', 'Value'],");
+            htmlTemplate.push("            ['Item 1', 10],");
+            htmlTemplate.push("            ['Item 2', 15],");
+            htmlTemplate.push("            ['Item 3', 12]");
+            htmlTemplate.push('        ]);');
+        }
+        
+        // Add options section
+        htmlTemplate.push('');
+        htmlTemplate.push('        const options = {');
+        htmlTemplate.push(`            title: '${options.title.replace(/'/g, "\\'")}',`);
+        
+        if (options.hAxis && options.hAxis.title) {
+            htmlTemplate.push(`            hAxis: { title: '${options.hAxis.title.replace(/'/g, "\\'")}' },`);
+        }
+        
+        if (options.vAxis && options.vAxis.title) {
+            htmlTemplate.push(`            vAxis: { title: '${options.vAxis.title.replace(/'/g, "\\'")}' },`);
+        }
+        
+        if (options.legend && options.legend.position) {
+            htmlTemplate.push(`            legend: { position: '${options.legend.position}' },`);
+        }
+        
+        if (options.is3D !== undefined) {
+            htmlTemplate.push(`            is3D: ${options.is3D},`);
+        }
+        
+        if (options.colors && options.colors.length) {
+            htmlTemplate.push(`            colors: [${options.colors.map(color => `'${color}'`).join(', ')}],`);
+        }
+        
+        if (options.animation) {
+            htmlTemplate.push('            animation: {');
+            htmlTemplate.push(`                duration: ${options.animation.duration},`);
+            htmlTemplate.push('                startup: true');
+            htmlTemplate.push('            }');
+        } else {
+            // Remove trailing comma from previous line if animation is not included
+            const lastLine = htmlTemplate[htmlTemplate.length - 1];
+            if (lastLine.endsWith(',')) {
+                htmlTemplate[htmlTemplate.length - 1] = lastLine.slice(0, -1);
+            }
+        }
+        
+        htmlTemplate.push('        };');
+        
+        // Add chart drawing section
+        htmlTemplate.push('');
+        htmlTemplate.push(`        const chart = new google.visualization.${chartType}(document.getElementById('chart_div'));`);
+        htmlTemplate.push('        chart.draw(data, options);');
+        htmlTemplate.push('    }');
+        htmlTemplate.push('    <\/script>');
+        htmlTemplate.push('</head>');
+        htmlTemplate.push('<body>');
+        htmlTemplate.push(`    <div id="chart_div" style="width: ${options.width}px; height: ${options.height}px;"></div>`);
+        htmlTemplate.push('</body>');
+        htmlTemplate.push('</html>');
+        
+        // Join all lines with newlines
+        const codeString = htmlTemplate.join('\n');
+        
+        // Set the code in the output div, safely escaping HTML for display
+        document.getElementById('generated-code').textContent = codeString;
+    } catch (e) {
+        document.getElementById('error-message').innerText = 'Error generating code: ' + e.message;
+        console.error(e);
+    }
+}
+
+function copyCode() {
+    const codeElement = document.getElementById('generated-code');
+    const textArea = document.createElement('textarea');
+    textArea.value = codeElement.textContent;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    alert('Code copied to clipboard!');
+}
+
+// Initialize the chart when the page loads
+google.charts.setOnLoadCallback(function() {
+    updateChart();
+});
+    </script>
+</body>
+</html>
